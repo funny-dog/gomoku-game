@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋游戏测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .board {
+            display: inline-block;
+            background-color: #DDB88C;
+            border: 2px solid #333;
+            position: relative;
+            width: 450px;
+            height: 450px;
+            background-image:
+                linear-gradient(to right, #333 1px, transparent 1px),
+                linear-gradient(to bottom, #333 1px, transparent 1px);
+            background-size: 30px 30px;
+            cursor: pointer;
+        }
+        .stone {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            z-index: 1;
+        }
+        .black-stone {
+            background-color: #000;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .white-stone {
+            background-color: #fff;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .game-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
+        .winner {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #4CAF50;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>五子棋游戏</h1>
+        <div class="game-info">
+            <div>当前玩家: <span id="player">黑子</span></div>
+            <div>游戏状态: <span id="status">进行中</span></div>
+            <button id="restart-btn">重新开始</button>
+        </div>
+        <div class="board" id="board"></div>
+        <div class="winner" id="winner"></div>
+    </div>
+
+    <script>
+        // 五子棋游戏逻辑
+        class GomokuGame {
+          constructor() {
+            this.board = Array(15).fill().map(() => Array(15).fill(0));
+            this.currentPlayer = 1;
+            this.gameOver = false;
+            this.winner = null;
+          }
+
+          makeMove(row, col) {
+            if (this.gameOver || this.board[row][col] !== 0) {
+              return false;
+            }
+
+            this.board[row][col] = this.currentPlayer;
+
+            if (this.checkWin(row, col)) {
+              this.gameOver = true;
+              this.winner = this.currentPlayer;
+              return true;
+            }
+
+            if (this.isBoardFull()) {
+              this.gameOver = true;
+              return true;
+            }
+
+            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            return true;
+          }
+
+          checkWin(row, col) {
+            const player = this.board[row][col];
+            const directions = [
+              [0, 1], [1, 0], [1, 1], [1, -1]
+            ];
+
+            for (let [dx, dy] of directions) {
+              let count = 1;
+
+              for (let i = 1; i < 5; i++) {
+                const r = row + dx * i;
+                const c = col + dy * i;
+                if (r >= 0 && r < 15 && c >= 0 && c < 15 && this.board[r][c] === player) {
+                  count++;
+                } else {
+                  break;
+                }
+              }
+
+              for (let i = 1; i < 5; i++) {
+                const r = row - dx * i;
+                const c = col - dy * i;
+                if (r >= 0 && r < 15 && c >= 0 && c < 15 && this.board[r][c] === player) {
+                  count++;
+                } else {
+                  break;
+                }
+              }
+
+              if (count >= 5) {
+                return true;
+              }
+            }
+
+            return false;
+          }
+
+          isBoardFull() {
+            for (let row = 0; row < 15; row++) {
+              for (let col = 0; col < 15; col++) {
+                if (this.board[row][col] === 0) {
+                  return false;
+                }
+              }
+            }
+            return true;
+          }
+
+          reset() {
+            this.board = Array(15).fill().map(() => Array(15).fill(0));
+            this.currentPlayer = 1;
+            this.gameOver = false;
+            this.winner = null;
+          }
+
+          getCurrentPlayer() {
+            return this.currentPlayer;
+          }
+
+          getGameState() {
+            return {
+              board: this.board,
+              currentPlayer: this.currentPlayer,
+              gameOver: this.gameOver,
+              winner: this.winner
+            };
+          }
+        }
+
+        // 游戏UI类
+        class GomokuUI {
+          constructor() {
+            this.game = new GomokuGame();
+            this.boardElement = document.getElementById('board');
+            this.playerElement = document.getElementById('player');
+            this.statusElement = document.getElementById('status');
+            this.winnerElement = document.getElementById('winner');
+            this.restartBtn = document.getElementById('restart-btn');
+
+            this.initBoard();
+            this.bindEvents();
+          }
+
+          initBoard() {
+            this.boardElement.innerHTML = '';
+            this.updateGameInfo();
+          }
+
+          handleBoardClick(e) {
+            e.stopPropagation();
+
+            if (this.game.gameOver) return;
+
+            const rect = this.boardElement.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const col = Math.floor(x / 30);
+            const row = Math.floor(y / 30);
+
+            if (row >= 0 && row < 15 && col >= 0 && col < 15) {
+              if (this.game.makeMove(row, col)) {
+                this.updateBoard();
+                this.updateGameInfo();
+              }
+            }
+          }
+
+          bindEvents() {
+            this.boardElement.addEventListener('click', this.handleBoardClick.bind(this));
+            this.restartBtn.addEventListener('click', () => {
+              this.game.reset();
+              this.initBoard();
+              this.updateBoard();
+              this.updateGameInfo();
+            });
+          }
+
+          updateBoard() {
+            const gameState = this.game.getGameState();
+            document.querySelectorAll('.stone').forEach(stone => stone.remove());
+
+            for (let row = 0; row < 15; row++) {
+              for (let col = 0; col < 15; col++) {
+                const value = gameState.board[row][col];
+                if (value !== 0) {
+                  const stone = document.createElement('div');
+                  stone.className = `stone ${value === 1 ? 'black-stone' : 'white-stone'}`;
+                  stone.style.top = `${row * 30 + 3}px`;
+                  stone.style.left = `${col * 30 + 3}px`;
+                  this.boardElement.appendChild(stone);
+                }
+              }
+            }
+          }
+
+          updateGameInfo() {
+            this.playerElement.textContent = this.game.getCurrentPlayer() === 1 ? '黑子' : '白子';
+
+            if (this.game.gameOver) {
+              if (this.game.winner) {
+                this.statusElement.textContent = '游戏结束';
+                this.winnerElement.textContent = `恭喜！${this.game.winner === 1 ? '黑子' : '白子'}获胜！`;
+              } else {
+                this.statusElement.textContent = '游戏结束';
+                this.winnerElement.textContent = '平局！';
+              }
+            } else {
+              this.statusElement.textContent = '进行中';
+              this.winnerElement.textContent = '';
+            }
+          }
+        }
+
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', () => {
+          new GomokuUI();
+        });
+    </script>
+</body>
+</html>
