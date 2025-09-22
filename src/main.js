@@ -166,6 +166,7 @@ class GomokuUI {
     stone.dataset.col = col;
 
     // 动态计算棋子位置
+    const rect = this.boardElement.getBoundingClientRect();
     const cellSize = rect.width / 15;
     const stoneSize = cellSize - 6; // 棋子比格子小6px
     const top = row * cellSize + 3;
