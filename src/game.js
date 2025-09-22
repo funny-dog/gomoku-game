@@ -6,10 +6,23 @@ class GomokuGame {
     this.currentPlayer = 1; // 1为黑子，2为白子
     this.gameOver = false;
     this.winner = null;
+    this.moveHistory = [];
+    this.moveCount = 0;
+    this.blackStones = 0;
+    this.whiteStones = 0;
   }
 
   // 落子
   makeMove(row, col) {
+    // 参数验证
+    if (typeof row !== 'number' || typeof col !== 'number') {
+      throw new Error('Row and col must be numbers');
+    }
+
+    if (row < 0 || row >= 15 || col < 0 || col >= 15) {
+      throw new Error('Row and col must be between 0 and 14');
+    }
+
     // 检查游戏是否已结束或位置是否已被占用
     if (this.gameOver || this.board[row][col] !== 0) {
       return false;
@@ -17,6 +30,23 @@ class GomokuGame {
 
     // 落子
     this.board[row][col] = this.currentPlayer;
+    this.moveCount++;
+
+    // 记录落子统计
+    if (this.currentPlayer === 1) {
+      this.blackStones++;
+    } else {
+      this.whiteStones++;
+    }
+
+    // 记录历史
+    this.moveHistory.push({
+      row,
+      col,
+      player: this.currentPlayer,
+      boardState: JSON.parse(JSON.stringify(this.board)),
+      moveCount: this.moveCount
+    });
 
     // 检查是否获胜
     if (this.checkWin(row, col)) {
@@ -48,32 +78,54 @@ class GomokuGame {
 
     for (let [dx, dy] of directions) {
       let count = 1; // 包含当前落子
+      let leftBlocked = false;
+      let rightBlocked = false;
 
       // 向一个方向检查
-      for (let i = 1; i < 5; i++) {
+      for (let i = 1; i <= 5; i++) {
         const r = row + dx * i;
         const c = col + dy * i;
-        if (r >= 0 && r < 15 && c >= 0 && c < 15 && this.board[r][c] === player) {
-          count++;
+        if (r >= 0 && r < 15 && c >= 0 && c < 15) {
+          if (this.board[r][c] === player) {
+            count++;
+          } else if (this.board[r][c] !== 0) {
+            rightBlocked = true;
+            break;
+          } else {
+            break;
+          }
         } else {
+          rightBlocked = true;
           break;
         }
       }
 
       // 向相反方向检查
-      for (let i = 1; i < 5; i++) {
+      for (let i = 1; i <= 5; i++) {
         const r = row - dx * i;
         const c = col - dy * i;
-        if (r >= 0 && r < 15 && c >= 0 && c < 15 && this.board[r][c] === player) {
-          count++;
+        if (r >= 0 && r < 15 && c >= 0 && c < 15) {
+          if (this.board[r][c] === player) {
+            count++;
+          } else if (this.board[r][c] !== 0) {
+            leftBlocked = true;
+            break;
+          } else {
+            break;
+          }
         } else {
+          leftBlocked = true;
           break;
         }
       }
 
-      // 如果连成5子则获胜
-      if (count >= 5) {
+      // 如果正好连成5子且两端都未被完全封堵，则获胜
+      if (count === 5 && !(leftBlocked && rightBlocked)) {
         return true;
+      }
+      // 如果超过5子，按照标准五子棋规则不算获胜
+      if (count > 5) {
+        return false;
       }
     }
 
@@ -92,12 +144,39 @@ class GomokuGame {
     return true;
   }
 
+  // 悔棋
+  undo() {
+    if (this.moveHistory.length === 0) {
+      return false;
+    }
+
+    const lastMove = this.moveHistory.pop();
+    this.board = lastMove.boardState;
+    this.currentPlayer = lastMove.player;
+    this.moveCount = lastMove.moveCount - 1;
+    this.gameOver = false;
+    this.winner = null;
+
+    // 更新棋子统计
+    if (lastMove.player === 1) {
+      this.blackStones--;
+    } else {
+      this.whiteStones--;
+    }
+
+    return true;
+  }
+
   // 重新开始游戏
   reset() {
     this.board = Array(15).fill().map(() => Array(15).fill(0));
     this.currentPlayer = 1;
     this.gameOver = false;
     this.winner = null;
+    this.moveHistory = [];
+    this.moveCount = 0;
+    this.blackStones = 0;
+    this.whiteStones = 0;
   }
 
   // 获取当前玩家
@@ -111,6 +190,21 @@ class GomokuGame {
       board: this.board,
       currentPlayer: this.currentPlayer,
       gameOver: this.gameOver,
+      winner: this.winner,
+      moveCount: this.moveCount,
+      blackStones: this.blackStones,
+      whiteStones: this.whiteStones,
+      canUndo: this.moveHistory.length > 0
+    };
+  }
+
+  // 获取游戏统计
+  getGameStats() {
+    return {
+      moveCount: this.moveCount,
+      blackStones: this.blackStones,
+      whiteStones: this.whiteStones,
+      isGameOver: this.gameOver,
       winner: this.winner
     };
   }

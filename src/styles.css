@@ -97,3 +97,93 @@ h1 {
   color: #4CAF50;
   min-height: 30px;
 }
+
+/* 游戏统计信息样式 */
+.game-stats {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.game-controls {
+  margin-top: 10px;
+}
+
+.game-controls button {
+  margin: 0 5px;
+}
+
+#undo-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+    margin: 5px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .game-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .game-stats {
+    font-size: 12px;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .game-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .game-controls button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  .board {
+    width: 90vw;
+    height: 90vw;
+    max-width: 450px;
+    max-height: 450px;
+    background-size: calc(100% / 15) calc(100% / 15);
+  }
+
+  .stone {
+    width: calc(100% / 15 - 6px);
+    height: calc(100% / 15 - 6px);
+  }
+
+  .winner {
+    font-size: 18px;
+    padding: 10px;
+  }
+}
+
+/* 平板设备适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .board {
+    width: 70vw;
+    height: 70vw;
+    max-width: 500px;
+    max-height: 500px;
+    background-size: calc(100% / 15) calc(100% / 15);
+  }
+
+  .stone {
+    width: calc(100% / 15 - 6px);
+    height: calc(100% / 15 - 6px);
+  }
+}

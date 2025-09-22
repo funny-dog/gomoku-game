@@ -12,7 +12,15 @@
         <div class="game-info">
             <div class="current-player">当前玩家: <span id="player">黑子</span></div>
             <div class="game-status">游戏状态: <span id="status">进行中</span></div>
-            <button id="restart-btn">重新开始</button>
+            <div class="game-stats">
+                <span>回合数: <span id="move-count">0</span></span> |
+                <span>黑子: <span id="black-stones">0</span></span> |
+                <span>白子: <span id="white-stones">0</span></span>
+            </div>
+            <div class="game-controls">
+                <button id="undo-btn">悔棋 (不可用)</button>
+                <button id="restart-btn">重新开始</button>
+            </div>
         </div>
         <div class="board" id="board"></div>
         <div class="winner" id="winner"></div>
