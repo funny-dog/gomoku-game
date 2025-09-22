@@ -53,9 +53,10 @@ class GomokuUI {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // 计算行列索引（每个格子30px）
-    const col = Math.floor(x / 30);
-    const row = Math.floor(y / 30);
+    // 动态计算格子大小
+    const cellSize = rect.width / 15;
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
 
     // 检查行列是否在有效范围内
     if (row >= 0 && row < 15 && col >= 0 && col < 15) {
@@ -164,10 +165,19 @@ class GomokuUI {
     stone.dataset.row = row;
     stone.dataset.col = col;
 
+    // 动态计算棋子位置
+    const rect = this.boardElement.getBoundingClientRect();
+    const cellSize = rect.width / 15;
+    const stoneSize = cellSize - 6; // 棋子比格子小6px
+    const top = row * cellSize + 3;
+    const left = col * cellSize + 3;
+
     // 添加落子动画
     stone.style.cssText = `
-      top: ${row * 30 + 3}px;
-      left: ${col * 30 + 3}px;
+      top: ${top}px;
+      left: ${left}px;
+      width: ${stoneSize}px;
+      height: ${stoneSize}px;
       animation: stoneDrop 0.3s ease-out;
     `;
 
